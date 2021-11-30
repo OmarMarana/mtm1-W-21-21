@@ -27,6 +27,9 @@ NodeResult nodeAdd(Node node_head, Node new_node, CmpFunction strcmp);
 /*Destroys a linked list*/
 //void nodeDestroy(Node list, freeMapDataElements freeDataElement,freeMapKeyElements freeKeyElement);
 
+void nodeDestroy(Node list);
+
+
 /*Frees a single node in a list using the free function supplied by the user*/
 void nodeFree(Node node);
 

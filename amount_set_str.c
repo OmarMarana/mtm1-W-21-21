@@ -32,8 +32,6 @@ AmountSet asCreate()
 
     //as_to_create->head = nodeCreate();
 
-   
-   
     /*NOTE: iterator may need malloc*/
     return as_to_create;
 }
@@ -45,8 +43,8 @@ void asDestroy(AmountSet set)
         return;
     }
     asClear(set);
+    nodeFree(set->head);     // check for seg fault here
     free(set);
-
 }
 
 AmountSet asCopy(AmountSet set)
@@ -62,7 +60,6 @@ AmountSet asCopy(AmountSet set)
     {
         return NULL;
     }
-
 
     set_copy->size= set->size;
     //set_copy->head= set->head;   if there are bugs then check here
@@ -183,6 +180,7 @@ AmountSetResult asRegister(AmountSet set, const char* element)
     if(add_result == NODE_SUCCESS)
     {
         set->node_iterator = ITERATOR_UNDEFINED;
+        set->size++;
         return AS_SUCCESS;
     }
 
@@ -199,8 +197,93 @@ AmountSetResult asRegister(AmountSet set, const char* element)
     
 
 }
-AmountSetResult asChangeAmount(AmountSet set, const char* element, double amount);
-AmountSetResult asDelete(AmountSet set, const char* element);
-AmountSetResult asClear(AmountSet set);
-char* asGetFirst(AmountSet set);
-char* asGetNext(AmountSet set);
+
+AmountSetResult asChangeAmount(AmountSet set, const char* element, double amount)
+{
+    if(set==NULL || element == NULL)
+    {
+        return AS_NULL_ARGUMENT;
+    }
+   
+    Node current_node = nodeGetNext(set->head);
+    while(current_node  != NULL)
+    {
+        if(strcmp(nodeGetName(current_node), element) == 0)
+        {
+            int new_amount = nodeGetAmount(current_node) + amount;
+            if(new_amount < 0)
+            {
+                return AS_INSUFFICIENT_AMOUNT;
+            }
+            nodeSetAmount(current_node, new_amount); 
+            return AS_SUCCESS;
+        }
+        current_node = nodeGetNext(current_node);
+    }
+    return AS_ITEM_DOES_NOT_EXIST;
+}
+
+AmountSetResult asDelete(AmountSet set, const char* element) // remember to update set size after this op
+{
+    if(set == NULL || element == NULL)
+    {
+        return AS_NULL_ARGUMENT;
+    }
+
+    Node current_node = nodeGetNext(set->head);
+    Node previous_node = set->head;
+
+    while(current_node != NULL)
+    {
+        if(strcmp(nodeGetName(current_node), element) == 0)
+        {
+            nodeSetNext(previous_node, nodeGetNext(current_node));
+            nodeFree(current_node);
+            set->size--;
+            return AS_SUCCESS;
+        }
+        previous_node = nodeGetNext(previous_node);
+        current_node = nodeGetNext(current_node);
+    }
+
+    set->node_iterator = ITERATOR_UNDEFINED;
+    return AS_ITEM_DOES_NOT_EXIST;
+}
+
+AmountSetResult asClear(AmountSet set)
+{
+    if(set == NULL)
+    {
+        return AS_NULL_ARGUMENT;
+    }
+    nodeDestroy(nodeGetNext(set->head));
+    set->size= 0;
+    set->node_iterator= NULL;
+    return AS_SUCCESS;   
+}
+
+char* asGetFirst(AmountSet set)// did not return a copy of the name 
+{
+    if(set == NULL)
+    {
+        return NULL;
+    }
+
+    set->node_iterator = (set->head);
+    return asGetNext(set);
+}
+
+
+char* asGetNext(AmountSet set) // did not return a copy of the name 
+{  
+    if(set == NULL || nodeGetNext(set->node_iterator) == NULL ||
+       set->node_iterator == ITERATOR_UNDEFINED)
+    {
+        return NULL;
+    }
+
+    set->node_iterator = nodeGetNext(set->node_iterator);
+
+    return set->node_iterator;
+    
+}

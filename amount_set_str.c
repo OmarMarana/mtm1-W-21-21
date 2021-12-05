@@ -173,7 +173,7 @@ AmountSetResult asRegister(AmountSet set, const char* element)
     }
 
     nodeSetAmount(new_node, INITIAL_AMOUNT);
-    nodeSetName(new_node, copy_name);
+    NodeSetTheName(new_node, copy_name);
 
     NodeResult add_result = nodeAdd(set->head, new_node, strcmp);
 
@@ -257,6 +257,7 @@ AmountSetResult asClear(AmountSet set)
         return AS_NULL_ARGUMENT;
     }
     nodeDestroy(nodeGetNext(set->head));
+    nodeSetNext(set->head, NULL);
     set->size= 0;
     set->node_iterator= NULL;
     return AS_SUCCESS;   
@@ -284,6 +285,6 @@ char* asGetNext(AmountSet set) // did not return a copy of the name
 
     set->node_iterator = nodeGetNext(set->node_iterator);
 
-    return set->node_iterator;
+    return nodeGetName(set->node_iterator);
     
 }

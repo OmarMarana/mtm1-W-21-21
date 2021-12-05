@@ -33,7 +33,7 @@ void nodeDestroy(Node list);
 /*Frees a single node in a list using the free function supplied by the user*/
 void nodeFree(Node node);
 
-void nodeSetname(Node node, char* name);
+void NodeSetTheName(Node node, char* name);
 
 int nodeGetAmount(Node node);
 void nodeSetAmount(Node node,int amount);

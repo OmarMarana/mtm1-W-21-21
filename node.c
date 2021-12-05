@@ -118,7 +118,9 @@ char* nodeGetName(Node node)
 
 
 /* set the node's name. */
-void nodeSetname(Node node, char* name)
+    
+
+void NodeSetTheName(Node node, char* name)
 {
     if(node == NULL || name == NULL )
     {

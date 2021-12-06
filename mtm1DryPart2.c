@@ -253,8 +253,20 @@ int main()
         printf("NULL_ARGUMENT\n");
     }
 
+
+    printf("the lists after merge are \n\n\n");
+    printList(list1);
+    printList(list2);
+
     destroyLinkedList(list2);
     destroyLinkedList(list1);
+
+
+
+
+
+    printf("merged list is \n\n\n");
+
     printList(merged);
     destroyLinkedList(merged);
 

@@ -4,10 +4,11 @@
 
 #ifndef MTM1_ORDER_H
 #define MTM1_ORDER_H
+#include "amount_set.h"
 
 typedef struct Order_t *Order;
 
-typedef enum MatamikyaResult_t {
+typedef enum OrderResult_t {
     ORDER_SUCCESS = 0,
     ORDER_NULL_ARGUMENT,
     ORDER_OUT_OF_MEMORY,
@@ -17,12 +18,12 @@ typedef enum MatamikyaResult_t {
     ORDER_PRODUCT_NOT_EXIST,
     ORDER_ORDER_NOT_EXIST,
     ORDER_INSUFFICIENT_AMOUNT,
-} MatamikyaResult;
+} OrderResult;
 
 
 
 
-Order orderCreate();
+Order orderCreate(unsigned int id);
 
 void orderDestroy(Order order);
 
@@ -30,6 +31,13 @@ Order orderCopy(Order order);
 
 //compare ids
 int orderCompare(Order order1, Order order2);
+
+AmountSet orderGetProducts(Order order);
+
+unsigned int orderGetId(Order order)
+{
+    
+}
 
 
 

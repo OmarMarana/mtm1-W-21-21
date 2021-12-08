@@ -4,13 +4,18 @@
 
 #include "product.h"
 #include "matamikya.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdbool.h>
+#include <string.h>
+
 
 struct Product_t
 {
     unsigned int id;
     char* name;
     double amount_of_sold;
-    MatamikyaAmountType amount_type;
+    MatamikyaAmountType amountType;
     MtmProductData customData;
     MtmCopyData copyData;
     MtmFreeData freeData;
@@ -23,20 +28,46 @@ Product productCreate(const unsigned int id, const char *name,
                       MtmFreeData freeData, MtmGetProductPrice prodPrice) //i deleted: const double amount because it will be insered
                                                                        //like a "key" into the amount_set...
 {
-if(id<0 || name == NULL || amountType == NULL || customData == NULL || 
-copyData == NULL || freeData == NULL || prodPrice == NULL)
-Product newProduct = malloc(sizeof(*newProduct));
+	
+if(id<0 || name == NULL || copyData == NULL || freeData == NULL || prodPrice == NULL)
+{
+ return NULL;
+}
+	Product newProduct = malloc(sizeof(*newProduct));
+	
+	newProduct->name = NULL;
+	newProduct->customData = NULL;
+
 	if (!newProduct)
 	{
 		return NULL;
 	}
+
 	newProduct->id = id;
-    newProduct->name = name;
-    newProduct->amount_of_sold = 0;
-	newProduct->amount_type = amount_type;
-	newProduct->customData = customData;
+	
+
 	newProduct->copyData = copyData;
 	newProduct->freeData = freeData;
+	
+	char * new_name = malloc(sizeof(char) * (strlen(name) +1));
+	if(new_name == NULL)
+	{
+		productDestroy(newProduct);
+		return NULL;
+	}
+	strcpy(new_name, name);
+    newProduct->name = new_name;
+    newProduct->amount_of_sold = 0;
+	newProduct->amountType = amountType;
+	
+
+	newProduct->customData = newProduct->copyData(customData);
+	if(newProduct->customData == NULL)
+	{
+		productDestroy(newProduct);
+		return NULL;
+	}
+	
 	newProduct->prodPrice = prodPrice;
 
 	return newProduct;
@@ -44,15 +75,18 @@ Product newProduct = malloc(sizeof(*newProduct));
 
 void productDestroy(Product product)
 {
-if (!product) {
+if (product == NULL)
+    {
 		return;
 	}
+	free(product->name);
+	product->freeData(product->customData);
 	free(product);
 }
 
 Product productCopy(Product product)//convert to asCopyElement at matamikya
 {
-	if (!product) 
+	if (product == NULL) 
     {
 		return NULL;
 	}
@@ -69,18 +103,28 @@ Product productCopy(Product product)//convert to asCopyElement at matamikya
 
 int productCompare(Product product1,Product product2)
 {
-    if(product1 == NULL || product2 == NULL) 
+   /* if(product1 == NULL || product2 == NULL) 
     {
         return 
-    }
-	if (product1->id == product2->id)
-		return 0;
+    }*/
+	int temp= product1->id - product2->id;
+	return temp;
 }
 
-int productReturnId(Product product)
+int productGetId(Product product)
 {
- if(!product)// i think no need cause we use this func in matamikya only if products not null.
-
-
+// if(!product)// i think no need cause we use this func in matamikya only if products not null.
+return product->id;
 }
 
+MatamikyaAmountType productGetAmountType(Product product)
+{
+	// if(!product)// i think no need cause we use this func in matamikya only if products not null.
+return product->amountType;
+}
+
+
+void productChangeAmountOfSold(Product product,double delta )
+{
+    product->amount_of_sold +=delta;
+}

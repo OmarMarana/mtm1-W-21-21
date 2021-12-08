@@ -4,6 +4,7 @@
 
 #include "product.h"
 #include "matamikya.h"
+#include "amount_set.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
@@ -117,6 +118,11 @@ int productGetId(Product product)
 return product->id;
 }
 
+char* productGetName(Product product)
+{
+	return product->name;
+}
+
 MatamikyaAmountType productGetAmountType(Product product)
 {
 	// if(!product)// i think no need cause we use this func in matamikya only if products not null.
@@ -127,4 +133,21 @@ return product->amountType;
 void productChangeAmountOfSold(Product product,double delta )
 {
     product->amount_of_sold +=delta;
+}
+
+int productGetAmountOfSold(Product product)
+{
+ return product->amount_of_sold;
+}
+
+double productGetPricefrom(Product product, double amount)
+{
+	return product->prodPrice(product->customData, amount);
+}
+
+double productGetPricePerUnit(Product product)
+{
+	double* tmp = product->customData;
+	// return ((double*)product->customData)* ;
+	return *tmp;
 }

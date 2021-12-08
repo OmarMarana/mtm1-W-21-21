@@ -88,3 +88,8 @@ AmountSet orderGetProducts(Order order)
 {
     return order->products;
 }
+
+unsigned int orderGetId(Order order)
+{
+    return order->id;
+}

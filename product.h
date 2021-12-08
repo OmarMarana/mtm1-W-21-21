@@ -7,6 +7,7 @@
 
 #include <stdio.h>
 #include "matamikya.h"
+#include "amount_set.h"
 
 typedef enum {
     PRODUCT_OUT_OF_MEMORY,
@@ -55,11 +56,14 @@ Product productCopy(Product product);
 //return 0 if same id
 int productCompare(Product product1,Product product2);
 int productGetId(Product product);
+char* productGetName(Product product);
 MatamikyaAmountType productGetAmountType(Product product);
 
-void productChangeAmountOfSold(Product product,double delta );
+void productChangeAmountOfSold(Product product,double delta);
+int productGetAmountOfSold(Product product);
 
-
+double productGetPrice(Product product, double amount);
+double productGetPricePerUnit(Product product);
 
 // ********************************************
 // כתיבת תיעודים לכל הפונקציות בקבצי ה h

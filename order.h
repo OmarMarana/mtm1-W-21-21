@@ -34,10 +34,7 @@ int orderCompare(Order order1, Order order2);
 
 AmountSet orderGetProducts(Order order);
 
-unsigned int orderGetId(Order order)
-{
-    
-}
+unsigned int orderGetId(Order order);
 
 
 

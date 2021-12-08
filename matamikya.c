@@ -2,6 +2,7 @@
 // Created by omarm on 06/12/2021.
 //
 #include "matamikya.h"
+#include "matamikya_print.h"
 #include "amount_set.h"
 #include "order.h"
 #include "product.h"
@@ -18,6 +19,7 @@
 #define FIRST_DIGGIT 0
 #define LAST_DIGGIT 9
 #define HALF 0.5
+#define INITIAL_MAX_INCOME 0
 
 
 struct Matamikya_t
@@ -312,7 +314,7 @@ MatamikyaResult mtmChangeProductAmountInOrder(Matamikya matamikya , const unsign
     }
       SET_FOREACH(Order, current_order, matamikya->orders)
     {
-        if(orderGetId(current_order)==orderId)
+        if(orderGetId((Order)current_order)==orderId)
         {
             AS_FOREACH(Product, current_product, orderGetProducts((Order)current_order))
             {
@@ -325,11 +327,11 @@ MatamikyaResult mtmChangeProductAmountInOrder(Matamikya matamikya , const unsign
                     AmountSetResult change_amount_res = asChangeAmount(orderGetProducts((Order)current_order),
                     current_product , amount);
                     double new_amount;
-                    asGetAmount(orderGetProducts((Order)current_order, current_product, &new_amount);
+                    asGetAmount(orderGetProducts((Order)current_order), current_product, &new_amount);
 
                     if(change_amount_res == AS_INSUFFICIENT_AMOUNT || new_amount==0)
                     {
-                        asDelete(orderGetProducts((Order)current_order, current_product);
+                        asDelete(orderGetProducts((Order)current_order), current_product);
                         return MATAMIKYA_SUCCESS;
                     }
                     //if we got here then the produts's amount has been changed successfully 
@@ -348,7 +350,9 @@ MatamikyaResult mtmChangeProductAmountInOrder(Matamikya matamikya , const unsign
                     if(productGetId((Product)current_product) ==productId)
                     {
                         product_to_update = current_product;
+                        break;
                     }
+                    
                 }
                 AmountSetResult register_res=asRegister(orderGetProducts((Order)current_order), product_to_update);
                 if(register_res==AS_OUT_OF_MEMORY)
@@ -371,7 +375,6 @@ MatamikyaResult mtmShipOrder(Matamikya matamikya, const unsigned int orderId)
     if(matamikya == NULL)
     {
         return MATAMIKYA_NULL_ARGUMENT;
-
     }
 
     bool order_exist = false;
@@ -386,9 +389,6 @@ MatamikyaResult mtmShipOrder(Matamikya matamikya, const unsigned int orderId)
             {
                 double order_product_amount; 
                 double matamikya_product_amount;
-                //************************************
-                // check for errors in asGetAmount
-                //************************************
                 asGetAmount(orderGetProducts((Order)current_order),current_product_in_order,&order_product_amount);
                 asGetAmount(matamikya->products, current_product_in_order ,&matamikya_product_amount);
                 if(matamikya_product_amount < order_product_amount)
@@ -413,20 +413,172 @@ MatamikyaResult mtmShipOrder(Matamikya matamikya, const unsigned int orderId)
     AS_FOREACH(Product, current_order_product, orderGetProducts((Order)order_to_ship))
     {
         //change amount in AS product in matamikya
-        //check AS functions errors
+        //update soldAmount of each product
+        
         asGetAmount(orderGetProducts((Order)order_to_ship), current_order_product, &order_product_amount);
-        asChangeAmount(matamikya->products,current_order_product,order_product_amount);
+        asChangeAmount(matamikya->products, current_order_product, -order_product_amount);
+        productChangeAmountOfSold((Product)current_order_product ,order_product_amount);
+    
+    }
+    setRemove(matamikya->orders, order_to_ship);
+    
+    return MATAMIKYA_SUCCESS;
+    
+}
+
+
+
+
+
+//  * mtmCancelOrder: cancel an order and remove it from a Matamikya warehouse.
+//  
+//  * The order is deleted from the warehouse. The products and their amounts in
+//  * the warehouse is not changed.
+//  *
+//  * @param matamikya - warehouse containing the order.
+//  * @param orderId - id of the order being canceled.
+//  * @return
+//  *     MATAMIKYA_NULL_ARGUMENT - if a NULL argument is passed.
+//  *     MATAMIKYA_ORDER_NOT_EXIST - if matamikya does not contain an order with
+//  *         the given orderId.
+//  *     MATAMIKYA_SUCCESS - if the order was shipped successfully.
+MatamikyaResult mtmCancelOrder(Matamikya matamikya, const unsigned int orderId)
+{
+    if(matamikya == NULL)
+    {
+        return MATAMIKYA_NULL_ARGUMENT;
+    }
+    SET_FOREACH(Order, current_order, matamikya->orders)
+    {
+        if(orderGetId((Order)current_order) == orderId)
+        {
+          setRemove(matamikya->orders,current_order);
+          return MATAMIKYA_SUCCESS; 
+        }
+        //free itr????**************************************************************
+    }
+    return MATAMIKYA_ORDER_NOT_EXIST;
+}
+
+
+MatamikyaResult mtmPrintInventory(Matamikya matamikya, FILE *output)
+{
+    if(matamikya == NULL || output == NULL)
+    {
+        return MATAMIKYA_NULL_ARGUMENT;
+    }
+    fprintf(output,"Inventory Status:");
+    AS_FOREACH(Product, current_product, matamikya->products)
+    {
+      double curr_product_amount;
+      asGetAmount(matamikya->products, current_product, &curr_product_amount);
+      mtmPrintProductDetails(productGetName((Product)current_product),productGetId((Product)current_product),
+            curr_product_amount,productGetPricePerUnit((Product)current_product),output);
+    }
+  return MATAMIKYA_SUCCESS;
+}
+
+MatamikyaResult mtmPrintOrder(Matamikya matamikya, const unsigned int orderId, FILE *output)
+{
+    if(matamikya==NULL || output ==NULL)
+    {
+        return MATAMIKYA_NULL_ARGUMENT;
+    }
+
+    bool order_exist = false;
+    Order order_to_print = NULL;
+    SET_FOREACH(Order, current_order, matamikya->orders)
+    {
+        if(orderGetId((Order)current_order) == orderId)
+        {
+            order_to_print = (Order)current_order;
+            order_exist = true;
+            break;
+        }
+    }
+    if(order_exist == false)
+    {
+        return MATAMIKYA_ORDER_NOT_EXIST;
+    }
+
+
+    //begin updating the output file
+    mtmPrintOrderHeading(orderGetId((Order)order_to_print), output);
+    double current_product_amount=0;
+    double current_product_price =0;
+    double totalOrderPrice =0;
+    AS_FOREACH(Product, current_product, orderGetProducts((Order)order_to_print))
+    {
+        asGetAmount(orderGetProducts((Order)order_to_print) , current_product,&current_product_amount);
+        current_product_price = productGetPrice( (Product)current_product, current_product_amount);
+        mtmPrintProductDetails( productGetName((Product)current_product), productGetId((Product)current_product),
+        current_product_amount,current_product_price, output);
+        totalOrderPrice+=current_product_price;
+    }
+    mtmPrintOrderSummary(totalOrderPrice, output);
+
+    return MATAMIKYA_SUCCESS;
+}
+
+// /**
+//  * mtmPrintBestSelling: print the best selling products of a Matamikya
+//  * warehouse, as explained in the *.pdf.
+//  *
+//  * @param matamikya - a Matamikya warehouse.
+//  * @param output - an open, writable output stream, to which the order is printed.
+//  * @return
+//  *     MATAMIKYA_NULL_ARGUMENT - if a NULL argument is passed.
+//  *     MATAMIKYA_SUCCESS - if printed successfully.
+//  */
+MatamikyaResult mtmPrintBestSelling(Matamikya matamikya, FILE *output)
+{
+    if(matamikya == NULL || output ==NULL)
+    {
+        return MATAMIKYA_NULL_ARGUMENT;
+    }
+    fprintf(output,"Best Selling Product:");
+    bool non_sold_flag = true;
+    AS_FOREACH(Product, current_product, matamikya->products)
+    {
+        if(productGetAmountOfSold((Product)current_product)>0)
+        {
+          non_sold_flag=false; 
+        }
     }
     
+    if(non_sold_flag == true)
+    {
+      fprintf(output,"none");
+      return MATAMIKYA_SUCCESS;
+    }
+
+    double max_income = INITIAL_MAX_INCOME;
+    int current_product_price = 0;
+    AS_FOREACH(Product, current_product, matamikya->products)
+    {   
+        current_product_price = productGetPrice((Product)current_product ,
+         productGetAmountOfSold((Product)current_product) );
+        if(  current_product_price > max_income )
+        {
+            max_income = current_product_price;
+        }
+    }
+
     
-    /*
-    MATAMIKYA_NULL_ARGUMENT - if a NULL argument is passed.
-    MATAMIKYA_ORDER_NOT_EXIST - if matamikya does not contain an order with
-    the given orderId.
-    MATAMIKYA_INSUFFICIENT_AMOUNT - if the order contains a product with an amount
-    that is larger than its amount in matamikya.
-    MATAMIKYA_SUCCESS - if the order was shipped successfully.
-    
-    
-    */
+    Product max_income_product;
+    AS_FOREACH(Product, current_product, matamikya->products)
+    {
+        current_product_price = productGetPrice((Product)current_product ,
+         productGetAmountOfSold((Product)current_product) );
+        if(current_product_price == max_income)   
+        {
+            max_income_product = (Product)current_product;
+            break;
+        } 
+    }
+
+    mtmPrintIncomeLine(productGetName(max_income_product) , productGetId(max_income_product), max_income, output);
+
+    return MATAMIKYA_SUCCESS;  
 }
+

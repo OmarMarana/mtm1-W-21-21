@@ -14,7 +14,6 @@ struct Order_t
 {
     unsigned int id;
     AmountSet products;
-    
 };
 
 Order orderCreate(unsigned int id)
@@ -73,7 +72,6 @@ Order orderCopy(Order order)
     }
     order_to_create->products = new_products_as;
     order_to_create->id = order->id;
-    
 
     return order_to_create;  
 }

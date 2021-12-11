@@ -140,7 +140,7 @@ int productGetAmountOfSold(Product product)
  return product->amount_of_sold;
 }
 
-double productGetPricefrom(Product product, double amount)
+double productGetPrice(Product product, double amount)
 {
 	return product->prodPrice(product->customData, amount);
 }

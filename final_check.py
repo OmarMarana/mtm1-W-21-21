@@ -39,7 +39,7 @@ PART1_NAME = 'amount_set_str'
 EXEC_NAME_PART1 = 'amount_set_str'
 GCC_ARGS_PART1 = BASIC_GCC_ARGS.copy()
 # list of pairs: (subdirectory, glob pattern)
-GCC_SOURCES_PART1 = [('', 'amount_set_str*.c'), (TESTS_DIR, 'amount_set_str*.c')]
+GCC_SOURCES_PART1 = [('', 'amount_set_str*.c')]
 GCC_ARGS_SUFFIX_PART1 = []
 
 PART2_NAME = 'matamikya'

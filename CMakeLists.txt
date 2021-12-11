@@ -18,6 +18,6 @@ set(CMAKE_C_FLAGS ${MTM_FLAGS_DEBUG})
 
 # Add the names of your source files here
 #set(C_FILES amount_set_str.c amount_set_str_main.c amount_set_str_tests.c node.c)
-set(C_FILES order.c product.c matamikya.c )
+set(C_FILES order.c product.c matamikya.c matamikya_print.c tests/matamikya_main.c tests/matamikya_tests.c -L. -lmtm -lm -las  )
 
 add_executable(mtm1 ${C_FILES})

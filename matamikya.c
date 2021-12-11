@@ -41,7 +41,7 @@ static bool checkIfNameStartWithLetterOrNumber(const char* name)
     return false;
 }
 
-
+// assuming the error must be less than 0.1
 static bool checkIfConsistentWithAmountType(const double amount, const MatamikyaAmountType amountType)
 {
     int amount_int = (int)amount;
@@ -57,6 +57,44 @@ static bool checkIfConsistentWithAmountType(const double amount, const Matamikya
 
     return true;
 }
+/*
+
+MATAMIKYA_INTEGER_AMOUNT
+
+amount = 8.11;
+int_amount = (int)amount = 8;
+8.1 * 10 = 81.1;
+8 * 10 = 80;
+
+1.1 > 1
+
+0.9
+1
+
+9 - 10 = -1
+*****************************
+MATAMIKYA_HALF_INTEGER_AMOUNT
+
+amount = 8.6;
+amount = 8.4;
+amount = 8.1;
+amount = 8.5;
+
+8.61 
+
+int_amount = (int)amount = 8;
+
+
+8.6 * 10 = 86;
+8 * 10 = 80;
+
+
+
+
+
+
+
+*/
 
 
 Matamikya matamikyaCreate()

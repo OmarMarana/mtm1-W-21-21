@@ -4,8 +4,8 @@
 #include "matamikya.h"
 #include "matamikya_print.h"
 #include "amount_set.h"
-#include "order.h"
-#include "product.h"
+#include "matamikya_order.h"
+#include "matamikya_product.h"
 #include "set.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -41,60 +41,43 @@ static bool checkIfNameStartWithLetterOrNumber(const char* name)
     return false;
 }
 
-// assuming the error must be less than 0.1
+static double absValue(double value)
+{
+    if(value > 0)
+    {
+        return value;
+    }
+    else
+    {
+        return -value;
+    }
+
+}
+
 static bool checkIfConsistentWithAmountType(const double amount, const MatamikyaAmountType amountType)
 {
-    int amount_int = (int)amount;
-    int delta = amount - amount_int;
+    double abs_amount = absValue(amount);
+    int amount_int = (int)abs_amount;
+    double delta = abs_amount - amount_int;
     if(amountType == MATAMIKYA_INTEGER_AMOUNT)
     {
-        return delta == 0;
+        if(delta > 0.5)
+        {
+            return 1-delta <= 0.001;
+        }
+        return delta <=0.001;
     }
     else if(amountType == MATAMIKYA_HALF_INTEGER_AMOUNT)
     {
-        return delta == 0 || delta == HALF;
+        if(delta>=0.5)
+        {
+           return delta<=0.501;
+        }
+        return delta<=0.001;
     }
 
     return true;
 }
-/*
-
-MATAMIKYA_INTEGER_AMOUNT
-
-amount = 8.11;
-int_amount = (int)amount = 8;
-8.1 * 10 = 81.1;
-8 * 10 = 80;
-
-1.1 > 1
-
-0.9
-1
-
-9 - 10 = -1
-*****************************
-MATAMIKYA_HALF_INTEGER_AMOUNT
-
-amount = 8.6;
-amount = 8.4;
-amount = 8.1;
-amount = 8.5;
-
-8.61 
-
-int_amount = (int)amount = 8;
-
-
-8.6 * 10 = 86;
-8 * 10 = 80;
-
-
-
-
-
-
-
-*/
 
 
 Matamikya matamikyaCreate()
@@ -329,23 +312,13 @@ unsigned int mtmCreateNewOrder(Matamikya matamikya)
 
     matamikya->num_of_orders_created++;
     orderDestroy(new_order);
-    return SET_SUCCESS;
+    return new_order_id;
 
-        
 }
 
 MatamikyaResult mtmChangeProductAmountInOrder(Matamikya matamikya , const unsigned int orderId,
                                      const unsigned int productId, const double amount)
-{
-
-//  * if 'amount' < 0 then this amount should be decreased from the product in the order.
-//  * if 'amount' > 0 then this amount should be added to the product in the order.
-//  * if 'amount' = 0 then nothing should be done.
-//  * please note:
-//  *  1) If the amount to decrease('amount' < 0) is *larger or equal* then the amount of the product in the
-//  *     order, then the product is removed entirely from the order.
-//  *  2) If 'amount' > 0 and the product doesn't exist inside the order then you should add it to the order
-//  *     with the amount given as argument.
+{ 
    if(matamikya == NULL)
     {
       return MATAMIKYA_NULL_ARGUMENT;  
@@ -383,14 +356,24 @@ MatamikyaResult mtmChangeProductAmountInOrder(Matamikya matamikya , const unsign
             if(amount>0)
             {
                 Product product_to_update;
+                bool exist=false;
                 AS_FOREACH(Product, current_product, matamikya->products)
                 {
                     if(productGetId((Product)current_product) ==productId)
                     {
-                        product_to_update = current_product;
+                        exist=true;
+                        product_to_update = (Product)current_product;
                         break;
                     }
                     
+                }
+                if (exist==false)
+                {
+                    return MATAMIKYA_PRODUCT_NOT_EXIST;
+                }
+                if(checkIfConsistentWithAmountType(amount , productGetAmountType(product_to_update))==false)
+                {
+                    return MATAMIKYA_INVALID_AMOUNT;
                 }
                 AmountSetResult register_res=asRegister(orderGetProducts((Order)current_order), product_to_update);
                 if(register_res==AS_OUT_OF_MEMORY)
@@ -399,7 +382,7 @@ MatamikyaResult mtmChangeProductAmountInOrder(Matamikya matamikya , const unsign
                 }
                 asChangeAmount(orderGetProducts((Order)current_order),product_to_update,amount);
             }
-            return MATAMIKYA_PRODUCT_NOT_EXIST;
+            return MATAMIKYA_SUCCESS;
         }
     }  
     return MATAMIKYA_ORDER_NOT_EXIST;

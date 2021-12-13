@@ -135,7 +135,7 @@ void productChangeAmountOfSold(Product product,double delta )
     product->amount_of_sold +=delta;
 }
 
-int productGetAmountOfSold(Product product)
+double productGetAmountOfSold(Product product)
 {
  return product->amount_of_sold;
 }

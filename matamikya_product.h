@@ -117,7 +117,7 @@ void productChangeAmountOfSold(Product product,double delta);
 * @return
 * amount of sold of this product.
 */
-int productGetAmountOfSold(Product product);
+double productGetAmountOfSold(Product product);
 
 /**
 * productGetPrice: return the price of this product according to the bought amount of it.

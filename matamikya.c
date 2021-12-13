@@ -11,6 +11,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
+#include<math.h>
 
 #define FIRST_SMALL_LETTER 'a'
 #define Last_SMALL_LETTER 'z'
@@ -57,32 +58,99 @@ static double absValue(double value)
 static bool checkIfConsistentWithAmountType(const double amount, const MatamikyaAmountType amountType)
 {
     double abs_amount = absValue(amount);
-    int amount_int = (int)abs_amount;
-    double delta = abs_amount - amount_int;
+    double intpart;
+    double fractpart = modf(abs_amount, &intpart);
+    bool result = true;
+
     if(amountType == MATAMIKYA_INTEGER_AMOUNT)
     {
-        if(delta > 0.5)
-        {
-            return 1-delta <= 0.001;
-        }
-        return delta <=0.001;
+        result = (fractpart <= 0.001 || fractpart >= 0.999);
+
+        return result;
     }
     else if(amountType == MATAMIKYA_HALF_INTEGER_AMOUNT)
     {
-        if(delta>=0.5)
-        {
-           return delta<=0.501;
-        }
-        return delta<=0.001;
+        result = (fractpart <= 0.001 || fractpart >= 0.999 || (fractpart <= 0.501 && fractpart >= 0.499));
+
+        return result;
+    }
+    else
+    {
+        return true;
     }
 
-    return true;
 }
+
+
+
+// static bool checkIfConsistentWithAmountType(const double amount, const MatamikyaAmountType amountType)
+// {
+//     double abs_amount = absValue(amount);
+// 	double intpart;
+//     double fract_part = modf(abs_amount,&intpart);
+//     if(amountType == MATAMIKYA_INTEGER_AMOUNT)
+//     {
+// 		return fract_part<=0.001 || (1-fract_part)<=0.001;
+//     }
+//     else if(amountType == MATAMIKYA_HALF_INTEGER_AMOUNT)
+//     {
+//        return (fract_part<=0.001 && fract_part>=-0.001) ||(1-fract_part<=0.001 && 1-fract_part>=-0.001)||
+// 	   ((0.5-fract_part)<=0.001 && (0.5-fract_part)>=-0.001) ||((fract_part-0.5)<=0.001 && (fract_part-0.5)>=-0.001);
+//     }
+
+//     return true;
+// }
+
+
+// static bool checkIfConsistentWithAmountType(const double amount, const MatamikyaAmountType amountType)
+// {
+//     double abs_amount = abs(amount);
+//     int amount_int = (int)abs_amount;
+//     double delta = abs_amount - amount_int;
+//     if(amountType == MATAMIKYA_INTEGER_AMOUNT)
+//     {
+//         if(delta > 0.5)
+//         {
+//             return 1-delta <= 0.001;
+//         }
+//         return delta <=0.001;
+//     }
+//     else if(amountType == MATAMIKYA_HALF_INTEGER_AMOUNT)
+//     {
+//         if(delta>=0.5)
+//         {
+//            return delta<=0.501;
+//         }
+//         return delta<=0.001;
+//     }
+
+//     return true;
+// }
+
+
+
+// static bool checkIfConsistentWithAmountType(const double amount, const MatamikyaAmountType amountType)
+// {
+//     double abs_amount = abs(amount);
+// 	double intpart;
+//     double fract_part = modf(abs_amount,&intpart);
+//     if(amountType == MATAMIKYA_INTEGER_AMOUNT)
+//     {
+// 		return fract_part<=0.001 || (1-fract_part)<=0.001;
+//     }
+//     else if(amountType == MATAMIKYA_HALF_INTEGER_AMOUNT)
+//     {
+//        return fract_part<=0.001 || (1-fract_part)<=0.001 || 
+// 	   (0.5-fract_part)<=0.001 ||(fract_part-0.5)<=0.001;
+//     }
+
+//     return true;
+// }
 
 
 Matamikya matamikyaCreate()
 {
-    
+
     Matamikya new_matamikya = malloc(sizeof(*new_matamikya));
     new_matamikya->products = NULL;
     new_matamikya->orders = NULL;
@@ -143,7 +211,7 @@ MatamikyaResult mtmNewProduct(Matamikya matamikya, const unsigned int id, const 
     }
 
 
-    if(amount < 0 || checkIfConsistentWithAmountType(amount , amountType)== 0)
+    if(amount < 0 || checkIfConsistentWithAmountType(amount , amountType)== false)
     {
         return MATAMIKYA_INVALID_AMOUNT; 
     }
@@ -350,31 +418,29 @@ MatamikyaResult mtmChangeProductAmountInOrder(Matamikya matamikya , const unsign
                     
                 }
             }
-            //*******
-            //check if setGetFirst and setGetNext return the element itself or a copy of it :C no sanwiches this time
-            //*******
+            
+            Product product_to_update;
+            bool exist=false;
+            AS_FOREACH(Product, current_product, matamikya->products)
+            {
+                if(productGetId((Product)current_product) ==productId)
+                {
+                    exist=true;
+                    product_to_update = (Product)current_product;
+                    break;
+                }
+                
+            }
+            if (exist==false)
+            {
+                return MATAMIKYA_PRODUCT_NOT_EXIST;
+            }
+            if(checkIfConsistentWithAmountType(amount , productGetAmountType(product_to_update))==false)
+            {
+                return MATAMIKYA_INVALID_AMOUNT;
+            }
             if(amount>0)
             {
-                Product product_to_update;
-                bool exist=false;
-                AS_FOREACH(Product, current_product, matamikya->products)
-                {
-                    if(productGetId((Product)current_product) ==productId)
-                    {
-                        exist=true;
-                        product_to_update = (Product)current_product;
-                        break;
-                    }
-                    
-                }
-                if (exist==false)
-                {
-                    return MATAMIKYA_PRODUCT_NOT_EXIST;
-                }
-                if(checkIfConsistentWithAmountType(amount , productGetAmountType(product_to_update))==false)
-                {
-                    return MATAMIKYA_INVALID_AMOUNT;
-                }
                 AmountSetResult register_res=asRegister(orderGetProducts((Order)current_order), product_to_update);
                 if(register_res==AS_OUT_OF_MEMORY)
                 {
@@ -382,6 +448,15 @@ MatamikyaResult mtmChangeProductAmountInOrder(Matamikya matamikya , const unsign
                 }
                 asChangeAmount(orderGetProducts((Order)current_order),product_to_update,amount);
             }
+            /*
+            ****************************************************************
+            ****************************************************************
+            ****************************************************************
+            what should be returned in case the product dosnt exist in the order and amount is <=0
+            ****************************************************************
+            ****************************************************************
+    	    ****************************************************************
+            */
             return MATAMIKYA_SUCCESS;
         }
     }  
@@ -582,11 +657,12 @@ MatamikyaResult mtmPrintBestSelling(Matamikya matamikya, FILE *output)
     }
 
     double max_income = INITIAL_MAX_INCOME;
-    int current_product_price = 0;
+    double current_product_price = 0;
     AS_FOREACH(Product, current_product, matamikya->products)
     {   
+        double amount_of_sold = productGetAmountOfSold((Product)current_product);
         current_product_price = productGetPrice((Product)current_product ,
-         productGetAmountOfSold((Product)current_product) );
+         amount_of_sold );
         if(  current_product_price > max_income )
         {
             max_income = current_product_price;

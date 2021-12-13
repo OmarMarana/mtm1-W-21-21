@@ -438,8 +438,16 @@ MatamikyaResult mtmShipOrder(Matamikya matamikya, const unsigned int orderId)
         
         asGetAmount(orderGetProducts((Order)order_to_ship), current_order_product, &order_product_amount);
         asChangeAmount(matamikya->products, current_order_product, -order_product_amount);
-        productChangeAmountOfSold((Product)current_order_product ,order_product_amount);
-    
+        // the bug is that I updated the amount of sold in the order's AS
+        //what i should do is update amount of sold in matamikya products
+        AS_FOREACH(Product, matamikya_product, matamikya->products)
+        {
+            if(productGetId((Product)current_order_product) == productGetId((Product)matamikya_product))
+            {
+                productChangeAmountOfSold((Product)matamikya_product ,order_product_amount);
+                break;
+            }
+        }
     }
     setRemove(matamikya->orders, order_to_ship);
     
@@ -488,7 +496,7 @@ MatamikyaResult mtmPrintInventory(Matamikya matamikya, FILE *output)
     {
         return MATAMIKYA_NULL_ARGUMENT;
     }
-    fprintf(output,"Inventory Status:");
+    fprintf(output,"Inventory Status:\n");
     AS_FOREACH(Product, current_product, matamikya->products)
     {
       double curr_product_amount;
@@ -557,7 +565,7 @@ MatamikyaResult mtmPrintBestSelling(Matamikya matamikya, FILE *output)
     {
         return MATAMIKYA_NULL_ARGUMENT;
     }
-    fprintf(output,"Best Selling Product:");
+    fprintf(output,"Best Selling Product:\n");
     bool non_sold_flag = true;
     AS_FOREACH(Product, current_product, matamikya->products)
     {
@@ -569,7 +577,7 @@ MatamikyaResult mtmPrintBestSelling(Matamikya matamikya, FILE *output)
     
     if(non_sold_flag == true)
     {
-      fprintf(output,"none");
+      fprintf(output,"none\n");
       return MATAMIKYA_SUCCESS;
     }
 

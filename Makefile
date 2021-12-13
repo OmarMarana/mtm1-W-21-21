@@ -1,46 +1,25 @@
-CC = gcc
-OBJS = order.o product.o matamikya.o tests/matamikya_tests.o
-EXECCS = matamikya
-EXECMP = amount_set
-ORDER = order.h order.c
-PRODUCT = product.h product.c
-AMOUNT_SET = amount_set.c amount_set.h
-NODE = node.c node.h
-MATAMIKYA = matamikya.c matamikya.h
-LIBS = -L. -lamount_set
+CC=gcc
+OBJS= matamikya.o product.o order.o matamikya_print.c tests/matamikya_main.o tests/matamikya_tests.o
+EXEC=matamik
+OBJ=matamikya.o
+DEBUG=-g -DNDEBUG# now empty, assign -g for debug
+CFLAGS=-std=c99 -Wall -pedantic-errors -Werror $(DEBUG)
 
-DEBUG_FLAG= #now empty, assign -g for debug
-COMP_FLAG = -std=c99 -Wall -pedantic-errors -Werror -DNDEBUG
+$(EXEC) : $(OBJ)
+	$(CC) $(CFLAG) $(OBJ) -o $@ -L. -lmtm -lm -las
+$(OBJ): $(OBJS)
+	ld -r -o $(OBJ) $(OBJS)
 
-	
-all:  $(EXECCS) $(EXECMP)
+matamikya.o: matamikya.c matamikya.h matamikya_print.h amount_set.h \
+ matamikya_order.h matamikya_product.h set.h
+product.o: matamikya_product.c matamikya_product.h matamikya.h amount_set.h
+order.o: matamikya_order.c matamikya_order.h amount_set.h matamikya_product.h matamikya.h
+matamikya_print.o: matamikya_print.c matamikya_print.h
+matamikya_main.o: tests/matamikya_main.c tests/matamikya_tests.h \
+ tests/test_utilities.h
+matamikya_tests.o: tests/matamikya_tests.c tests/matamikya_tests.h \
+ tests/../matamikya.h tests/test_utilities.h
 
-$(EXECCS) : $(OBJS) 
-	$(CC)  $(COMP_FLAG) $(OBJS) -o matamikya $(LIBS)
-	
-$(EXECMP) : amount_set.o amount_set_str_tests.o
-	$(CC) $(COMP_FLAG) amount_set.o amount_set_str_tests.o -o $@
 
-node.o : $(node)
-	$(CC) -c $(DEBUG_FLAG) $(COMP_FLAG) amount_set.c
-
-amount_set.o : $(AMOUNT_SET)
-	$(CC) -c $(DEBUG_FLAG) $(COMP_FLAG) amount_set.c
-
-product.o : $(PRODUCT) product.h
-	$(CC) -c $(DEBUG_FLAG) $(COMP_FLAG)  $*.c
-
-order.o : $(ORDER) order.h
-	$(CC) -c $(DEBUG_FLAG) $(COMP_FLAG) $*.c
-
-matamikya.o : $(MATAMIKYA) player.h tournament.h game.h
-	$(CC) -c $(DEBUG_FLAG) $(COMP_FLAG) $*.c
-
-tests/matamikya_tests.o :  tests/matamikya_tests.c player.h test_utilities.h
-	$(CC) -c $(DEBUG_FLAG) $(COMP_FLAG) $*.c -o $*.o
-	
-amount_set_str_tests.o : amount_set_str_tests.c test_utilities.h
-	$(CC) -c $(DEBUG_FLAG) $(COMP_FLAG) $*.c -o $*.o
-	
-clean: 
-	rm -f $(OBJS) $(EXECEM) $(EXECPQ) amount_set_str_tests.o matamikya.o amount_set.o
+clean:
+	rm -f $(OBJS) $(OBJ) $(EXEC)

@@ -15,6 +15,15 @@
 #define NO_SELLING_OUT_FILE "tests/printed_no_selling.txt"
 #define NO_SELLING_TEST_FILE "tests/expected_no_selling.txt"
 
+// #define INVENTORY_OUT_FILE      "/home/omarmarana/matam/Winter-21_22/mtm1-W-21-22/tests/printed_inventory.txt"
+// #define INVENTORY_TEST_FILE     "/home/omarmarana/matam/Winter-21_22/mtm1-W-21-22/tests/expected_inventory.txt"
+// #define ORDER_OUT_FILE          "/home/omarmarana/matam/Winter-21_22/mtm1-W-21-22/tests/printed_order.txt"
+// #define ORDER_TEST_FILE         "/home/omarmarana/matam/Winter-21_22/mtm1-W-21-22/tests/expected_order.txt"
+// #define BEST_SELLING_OUT_FILE   "/home/omarmarana/matam/Winter-21_22/mtm1-W-21-22/tests/printed_best_selling.txt"
+// #define BEST_SELLING_TEST_FILE  "/home/omarmarana/matam/Winter-21_22/mtm1-W-21-22/tests/expected_best_selling.txt"
+// #define NO_SELLING_OUT_FILE     "/home/omarmarana/matam/Winter-21_22/mtm1-W-21-22/tests/printed_no_selling.txt"
+// #define NO_SELLING_TEST_FILE    "/home/omarmarana/matam/Winter-21_22/mtm1-W-21-22/tests/expected_no_selling.txt"
+
 #define ASSERT_OR_DESTROY(expr) ASSERT_TEST_WITH_FREE((expr), matamikyaDestroy(mtm))
 
 bool testCreate() {

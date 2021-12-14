@@ -1,5 +1,5 @@
 #include "amount_set_str.h"
-#include "node.h"
+#include "amount_set_str_node.h"
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>

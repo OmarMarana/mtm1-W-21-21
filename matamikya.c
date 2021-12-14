@@ -21,7 +21,7 @@
 #define LAST_DIGGIT 9
 #define HALF 0.5
 #define INITIAL_MAX_INCOME 0
-
+//hello
 
 struct Matamikya_t
 {

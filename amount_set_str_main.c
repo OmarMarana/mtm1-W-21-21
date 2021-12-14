@@ -1,5 +1,5 @@
 #include "amount_set_str_tests.h"
-#include "test_utilities.h"
+#include "tests/test_utilities.h"
 
 int main()
 {

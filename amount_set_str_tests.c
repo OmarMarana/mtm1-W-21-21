@@ -1,6 +1,6 @@
 #include "amount_set_str_tests.h"
 #include "amount_set_str.h"
-#include "test_utilities.h"
+#include "tests/test_utilities.h"
 #include <assert.h>
 #include <stdlib.h>
 #include <string.h>
